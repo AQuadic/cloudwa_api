@@ -11,12 +11,13 @@ class CloudWaOTPChannel
 {
     /**
      * Send the given notification.
+     *
      * @throws ConnectionException
      * @throws Exception
      */
     public function send(mixed $notifiable, Notification $notification): void
     {
-        if (!method_exists($notification, 'toCloudWa')) {
+        if (! method_exists($notification, 'toCloudWa')) {
             throw new \Exception('toCloudWa Method not added yet in notification class');
         }
 
