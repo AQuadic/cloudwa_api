@@ -2,9 +2,9 @@
 
 namespace AQuadic\Cloudwa\Tests;
 
+use AQuadic\Cloudwa\CloudwaServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use AQuadic\Cloudwa\CloudwaServiceProvider;
 
 class TestCase extends Orchestra
 {

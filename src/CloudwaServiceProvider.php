@@ -4,7 +4,6 @@ namespace AQuadic\Cloudwa;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use AQuadic\Cloudwa\Commands\CloudwaCommand;
 
 class CloudwaServiceProvider extends PackageServiceProvider
 {
@@ -18,6 +17,6 @@ class CloudwaServiceProvider extends PackageServiceProvider
         $package
             ->name('cloudwa-api')
             ->hasConfigFile();
-//            ->hasViews()
+        //            ->hasViews()
     }
 }

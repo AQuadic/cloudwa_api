@@ -11,10 +11,13 @@ use Illuminate\Support\Facades\Http;
 class Cloudwa
 {
     protected string $sessionUuid;
+
     protected string $message;
+
     protected string $file;
 
     protected array $phones;
+
     private array $headers;
 
     protected Carbon $scheduleAt;
@@ -27,7 +30,7 @@ class Cloudwa
     {
         $this->headers = [
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . config('cloudwa.api_token'),
+            'Authorization' => 'Bearer '.config('cloudwa.api_token'),
             'Accept' => 'application/json',
         ];
 
@@ -50,34 +53,41 @@ class Cloudwa
         });
     }
 
-    public function file(string|null $file): static
+    public function file(?string $file): static
     {
         $this->file = $file;
+
         return $this;
     }
 
-    public function message(string|null $message, string $reference = null): static
+    public function message(?string $message, ?string $reference = null): static
     {
         $this->message = $message;
-        if (filled($reference)) $this->reference = $reference;
+        if (filled($reference)) {
+            $this->reference = $reference;
+        }
+
         return $this;
     }
 
     public function phone(array|string $phone): static
     {
         $this->phones = array_merge($this->phones ?? [], Arr::wrap($phone));
+
         return $this;
     }
 
-    public function session(string|null $sessionUuid): static
+    public function session(?string $sessionUuid): static
     {
         $this->sessionUuid = $sessionUuid;
+
         return $this;
     }
 
     public function throw(bool $throwOnException = true): static
     {
         $this->throwOnException = $throwOnException;
+
         return $this;
     }
 
@@ -88,13 +98,14 @@ class Cloudwa
 
     /**
      * Send message to whatsapp
+     *
      * @throws ConnectionException
      */
     public function sendMessage(): void
     {
         collect($this->phones)
             ->filter()
-            ->map(fn($p) => $this->normalizeNumber($p))
+            ->map(fn ($p) => $this->normalizeNumber($p))
             ->each(function ($phone) {
 
                 rescue(function () use ($phone) {
@@ -118,6 +129,7 @@ class Cloudwa
 
     /**
      * Notifies Cloudwa about new otp and waits to receive it.
+     *
      * @throws ConnectionException
      */
     public function sendOTP(): array|Collection
@@ -126,7 +138,7 @@ class Cloudwa
 
         return collect($this->phones)
             ->filter()
-            ->map(fn($p) => $this->normalizeNumber($p))
+            ->map(fn ($p) => $this->normalizeNumber($p))
             ->map(function ($phone) use ($team) {
 
                 rescue(function () use ($team, $phone) {
@@ -165,7 +177,7 @@ class Cloudwa
 
         return [
             'reference' => $reference,
-            'message' => 'OTP:' . $team . ':' . $code,
+            'message' => 'OTP:'.$team.':'.$code,
             'phone' => $phone,
             'scheme' => "whatsapp://send?text=OTP:$team:$code&phone=$phone&abid=$phone",
             'url' => "https://wa.me/$phone?text=OTP:$team:$code",
