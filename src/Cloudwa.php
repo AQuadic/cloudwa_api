@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Http;
 
 class Cloudwa
 {
-    protected string $sessionUuid;
+    protected ?string $sessionUuid;
 
-    protected string $message;
+    protected ?string $message;
 
-    protected string $file;
+    protected ?string $file;
 
-    protected array $phones;
+    protected ?array $phones;
 
     private array $headers;
 

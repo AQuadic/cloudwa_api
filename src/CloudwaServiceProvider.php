@@ -16,7 +16,7 @@ class CloudwaServiceProvider extends PackageServiceProvider
          */
         $package
             ->name('cloudwa-api')
-            ->hasConfigFile();
+            ->hasConfigFile('cloudwa');
         //            ->hasViews()
     }
 }
