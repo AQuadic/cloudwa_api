@@ -146,12 +146,10 @@ class Cloudwa
                         ->timeout(5)
                         ->throw()
                         ->post("https://cloudwa.net/api/v3/$team/otps", [
-                            'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
                             'phone' => $phone,
-                            'message' => $this->message ?? null,
-                            'schedule_at' => $this->scheduleAt,
-                            'type' => filled($this->file) ? 'IMAGE' : 'TEXT',
-                            'image' => $this->file ?? null,
+                            'code' => $this->message,
+                            'expires_at' => $this->scheduleAt->addMinutes(10),
+                            'reference_number' => $this->reference,
                         ]);
 
                     return self::generateWaCallback(
