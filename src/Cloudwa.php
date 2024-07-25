@@ -40,7 +40,7 @@ class Cloudwa
     /**
      * @throws ConnectionException
      */
-    public static function fetchSharedOTPNumbers(): array|Collection
+    public function fetchSharedOTPNumbers(): array|Collection
     {
         return cache()->remember('cloudwa-shared-otp-numbers', 60 * 60, function () {
             $team = config('cloudwa.team_id');
@@ -172,7 +172,7 @@ class Cloudwa
     {
         $team = config('cloudwa.team_id');
         $phone = config('cloudwa.otp.shared')
-            ? self::fetchSharedOTPNumbers()->random(1)->first()
+            ? (new self)->fetchSharedOTPNumbers()->random(1)->first()
             : config('cloudwa.otp.number');
 
         return [
