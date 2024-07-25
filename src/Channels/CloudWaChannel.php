@@ -21,7 +21,7 @@ class CloudWaChannel
 
         $message = $notification->toCloudWa($notifiable);
 
-        (new Cloudwa())
+        (new Cloudwa)
             ->session($message['uuid'] ?? $message['session_uuid'] ?? null)
             ->file($message['image'] ?? $message['file'] ?? null)
             ->phone($message['phones'] ?? $message['phone'] ?? null)
