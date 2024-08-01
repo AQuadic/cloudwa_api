@@ -30,7 +30,7 @@ class Cloudwa
     {
         $this->headers = [
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.config('cloudwa.api_token'),
+            'Authorization' => 'Bearer ' . config('cloudwa.api_token'),
             'Accept' => 'application/json',
         ];
 
@@ -38,19 +38,23 @@ class Cloudwa
     }
 
     /**
-     * @throws ConnectionException
+     * Fetching Shared OTP Numbers.
      */
-    public function fetchSharedOTPNumbers(): array|Collection
+    public function fetchSharedOTPNumbers(): Collection
     {
-        return cache()->remember('cloudwa-shared-otp-numbers', 60 * 60, function () {
-            $team = config('cloudwa.team_id');
+        try {
+            return cache()->remember('cloudwa-shared-otp-numbers', 60 * 60, function () {
+                $team = config('cloudwa.team_id');
 
-            return Http::withHeaders($this->headers)
-                ->timeout(5)
-                ->throw()
-                ->get("https://cloudwa.net/api/v3/$team/otps/shared-numbers")
-                ->collect();
-        });
+                return Http::withHeaders($this->headers)
+                    ->timeout(5)
+                    ->throw()
+                    ->get("https://cloudwa.net/api/v3/$team/otps/shared-numbers")
+                    ->collect();
+            });
+        } catch (\Exception|\Throwable) {
+            return collect();
+        }
     }
 
     public function file(?string $file): static
@@ -105,7 +109,7 @@ class Cloudwa
     {
         collect($this->phones)
             ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
+            ->map(fn($p) => $this->normalizeNumber($p))
             ->each(function ($phone) {
 
                 rescue(function () use ($phone) {
@@ -138,7 +142,7 @@ class Cloudwa
 
         return collect($this->phones)
             ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
+            ->map(fn($p) => $this->normalizeNumber($p))
             ->map(function ($phone) use ($team) {
 
                 rescue(function () use ($team, $phone) {
@@ -170,12 +174,16 @@ class Cloudwa
     {
         $team = config('cloudwa.team_id');
         $phone = config('cloudwa.otp.shared')
-            ? (new self)->fetchSharedOTPNumbers()->random(1)->first()
+            ? (new self)->fetchSharedOTPNumbers()
+                ->add(config('cloudwa.otp.number'))
+                ->filter()
+                ->random(1)
+                ->first()
             : config('cloudwa.otp.number');
 
         return [
             'reference' => $reference,
-            'message' => 'OTP:'.$team.':'.$code,
+            'message' => 'OTP:' . $team . ':' . $code,
             'phone' => $phone,
             'scheme' => "whatsapp://send?text=OTP:$team:$code&phone=$phone&abid=$phone",
             'url' => "https://wa.me/$phone?text=OTP:$team:$code",
