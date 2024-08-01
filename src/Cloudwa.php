@@ -30,7 +30,7 @@ class Cloudwa
     {
         $this->headers = [
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . config('cloudwa.api_token'),
+            'Authorization' => 'Bearer '.config('cloudwa.api_token'),
             'Accept' => 'application/json',
         ];
 
@@ -109,7 +109,7 @@ class Cloudwa
     {
         collect($this->phones)
             ->filter()
-            ->map(fn($p) => $this->normalizeNumber($p))
+            ->map(fn ($p) => $this->normalizeNumber($p))
             ->each(function ($phone) {
 
                 rescue(function () use ($phone) {
@@ -142,7 +142,7 @@ class Cloudwa
 
         return collect($this->phones)
             ->filter()
-            ->map(fn($p) => $this->normalizeNumber($p))
+            ->map(fn ($p) => $this->normalizeNumber($p))
             ->map(function ($phone) use ($team) {
 
                 rescue(function () use ($team, $phone) {
@@ -183,7 +183,7 @@ class Cloudwa
 
         return [
             'reference' => $reference,
-            'message' => 'OTP:' . $team . ':' . $code,
+            'message' => 'OTP:'.$team.':'.$code,
             'phone' => $phone,
             'scheme' => "whatsapp://send?text=OTP:$team:$code&phone=$phone&abid=$phone",
             'url' => "https://wa.me/$phone?text=OTP:$team:$code",
