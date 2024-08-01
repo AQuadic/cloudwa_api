@@ -175,11 +175,11 @@ class Cloudwa
         $team = config('cloudwa.team_id');
         $phone = config('cloudwa.otp.shared')
             ? (new self)->fetchSharedOTPNumbers()
-                ->add(config('cloudwa.otp.number'))
+                ->add(config('cloudwa.otp.private'))
                 ->filter()
                 ->random(1)
                 ->first()
-            : config('cloudwa.otp.number');
+            : config('cloudwa.otp.private');
 
         return [
             'reference' => $reference,
