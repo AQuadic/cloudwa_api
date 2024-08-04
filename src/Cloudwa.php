@@ -88,6 +88,13 @@ class Cloudwa
         return $this;
     }
 
+    public function token(?string $apiToken): static
+    {
+        $this->headers['Authorization'] = 'Bearer '.($apiToken ?? config('cloudwa.api_token'));
+
+        return $this;
+    }
+
     public function throw(bool $throwOnException = true): static
     {
         $this->throwOnException = $throwOnException;
