@@ -32,13 +32,13 @@ This is the contents of the published config file: [Open Here](./config/cloudwa.
 ## Usage
 
 ```php
-        (new Cloudwa())
-            ->session("SESSION UUID")
-            ->token("API TOKEN")
-            ->phone("201101782890") // phone
-            ->message("Hello World") // message
-            ->throw()
-            ->sendMessage();
+        (new Cloudwa()) // init CloudWa object/service.
+            ->session("SESSION UUID") // if not used, default to config value.
+            ->token("API TOKEN") // if not used, default to config value.
+            ->phone("201101782890") // phone number to send message to
+            ->message("Hello World") // message to be sent
+            ->throw() // throw an exception if failed to send.
+            ->sendMessage(); // send the message.
 ```
 
 ## Testing
