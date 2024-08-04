@@ -1,19 +1,17 @@
-# cloudwa api for laravel apps
+# Cloudwa API Wrapper for Laravel Apps
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/aquadic/cloudwa-api.svg?style=flat-square)](https://packagist.org/packages/aquadic/cloudwa-api)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/aquadic/cloudwa-api/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/aquadic/cloudwa-api/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/aquadic/cloudwa-api/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/aquadic/cloudwa-api/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/aquadic/cloudwa_api/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/aquadic/cloudwa_api/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/aquadic/cloudwa_api/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/aquadic/cloudwa_api/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/aquadic/cloudwa-api.svg?style=flat-square)](https://packagist.org/packages/aquadic/cloudwa-api)
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+Wrapper for docs: [https://cloudwa.net/docs](https://cloudwa.net/docs)
 
 ## Support us
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/cloudwa_api.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/cloudwa_api)
+[<img src="https://aquadic.com/img/logo.svg" width="419px" />](https://aquadic.com)
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+[<img src="https://scontent.fcai19-8.fna.fbcdn.net/v/t39.30808-6/335882308_599704055038942_794170052484657600_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeFxrMD7Lw2slNm7DqCcMo3huycRtvIpqDS7JxG28imoNGe-4xEBAAWjdGsFaillXdtlMXIsCNdW1uKguEv25TGn&_nc_ohc=ylQgIz7ovzQQ7kNvgFSBw8w&_nc_ht=scontent.fcai19-8.fna&oh=00_AYDheRXRkDd9Xb3b3RlYnAKnmA1_zehf_N9QQbKbujKI8g&oe=66B54B03" width="419px" />](https://cloudwa.net)
 
 ## Installation
 
@@ -23,37 +21,24 @@ You can install the package via composer:
 composer require aquadic/cloudwa-api
 ```
 
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="cloudwa-api-migrations"
-php artisan migrate
-```
-
 You can publish the config file with:
 
 ```bash
 php artisan vendor:publish --tag="cloudwa-api-config"
 ```
 
-This is the contents of the published config file:
-
-```php
-return [
-];
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="cloudwa-api-views"
-```
+This is the contents of the published config file: [Open Here](./config/cloudwa.php)
 
 ## Usage
 
 ```php
-$cloudwa = new AQuadic\Cloudwa();
-echo $cloudwa->echoPhrase('Hello, AQuadic!');
+        (new Cloudwa())
+            ->session("SESSION UUID")
+            ->token("API TOKEN")
+            ->phone("201101782890") // phone
+            ->message("Hello World") // message
+            ->throw()
+            ->sendMessage();
 ```
 
 ## Testing
