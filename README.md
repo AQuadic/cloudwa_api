@@ -32,6 +32,8 @@ This is the contents of the published config file: [Open Here](./config/cloudwa.
 ## Usage
 
 ```php
+use AQuadic\Cloudwa\Cloudwa;
+
         (new Cloudwa()) // init CloudWa object/service.
             ->session("SESSION UUID") // if not used, default to config value.
             ->token("API TOKEN") // if not used, default to config value.
