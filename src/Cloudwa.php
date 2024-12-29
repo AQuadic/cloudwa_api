@@ -20,6 +20,8 @@ class Cloudwa
 
     protected ?array $phones;
 
+    protected ?array $templateParameters;
+
     private array $headers;
 
     protected Carbon $scheduleAt;
@@ -79,6 +81,13 @@ class Cloudwa
     public function phone(array|string $phone): static
     {
         $this->phones = array_merge($this->phones ?? [], Arr::wrap($phone));
+
+        return $this;
+    }
+
+    public function templateParameters(array|string $templateParameters): static
+    {
+        $this->templateParameters = array_merge($this->templateParameters ?? [], Arr::wrap($templateParameters));
 
         return $this;
     }

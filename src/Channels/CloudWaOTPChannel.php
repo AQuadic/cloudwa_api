@@ -28,6 +28,7 @@ class CloudWaOTPChannel
             ->file($message['image'] ?? $message['file'] ?? null)
             ->phone($message['phones'] ?? $message['phone'] ?? null)
             ->type($message['type'] ?? null)
+            ->templateParameters($message['template_parameters'] ?? null)
             ->message(
                 $message['message'] ?? $message['text'] ?? $message['otp'] ?? $message['code'] ?? null,
                 $message['reference_number'] ?? $message['reference'] ?? null,
