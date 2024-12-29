@@ -25,6 +25,7 @@ class CloudWaChannel
             ->session($message['uuid'] ?? $message['session_uuid'] ?? null)
             ->file($message['image'] ?? $message['file'] ?? null)
             ->phone($message['phones'] ?? $message['phone'] ?? null)
+            ->type($message['type'] ?? null)
             ->message(
                 $message['message'] ?? $message['text'] ?? $message['otp'] ?? $message['code'] ?? null,
             )

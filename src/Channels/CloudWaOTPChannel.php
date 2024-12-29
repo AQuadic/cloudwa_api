@@ -17,16 +17,17 @@ class CloudWaOTPChannel
      */
     public function send(mixed $notifiable, Notification $notification): void
     {
-        if (! method_exists($notification, 'toCloudWa')) {
-            throw new \Exception('toCloudWa Method not added yet in notification class');
-        }
-
-        $message = $notification->toCloudWa($notifiable);
+        $message = match (true) {
+            method_exists($notification, 'toCloudWaOTP') => $notification->toCloudWaOTP($notifiable),
+            method_exists($notification, 'toCloudWa') => $notification->toCloudWa($notifiable),
+            default => throw new \Exception('toCloudWa or toCloudWaOTP Method not added yet in notification class'),
+        };
 
         (new Cloudwa)
             ->session($message['uuid'] ?? $message['session_uuid'] ?? null)
             ->file($message['image'] ?? $message['file'] ?? null)
             ->phone($message['phones'] ?? $message['phone'] ?? null)
+            ->type($message['type'] ?? null)
             ->message(
                 $message['message'] ?? $message['text'] ?? $message['otp'] ?? $message['code'] ?? null,
                 $message['reference_number'] ?? $message['reference'] ?? null,

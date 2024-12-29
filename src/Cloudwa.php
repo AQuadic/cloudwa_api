@@ -16,6 +16,8 @@ class Cloudwa
 
     protected ?string $file;
 
+    protected ?string $type;
+
     protected ?array $phones;
 
     private array $headers;
@@ -88,6 +90,13 @@ class Cloudwa
         return $this;
     }
 
+    public function type(?string $type): static
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
     public function scheduleAt(?Carbon $scheduleAt): static
     {
         $this->scheduleAt = ($scheduleAt ?? now());
@@ -135,7 +144,7 @@ class Cloudwa
                             'phone' => $phone,
                             'message' => $this->message ?? null,
                             'schedule_at' => $this->scheduleAt,
-                            'type' => filled($this->file) ? 'IMAGE' : 'TEXT',
+                            'type' => $this->type ?: (filled($this->file) ? 'IMAGE' : 'TEXT'),
                             'image' => $this->file ?? null,
                         ]);
                 }, function () {
