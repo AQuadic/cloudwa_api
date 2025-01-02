@@ -85,7 +85,7 @@ class Cloudwa
         return $this;
     }
 
-    public function templateParameters(array|null $templateParameters): static
+    public function templateParameters(?array $templateParameters): static
     {
         $this->templateParameters = array_merge($this->templateParameters ?? [], Arr::wrap(($templateParameters ?? [])));
 
