@@ -38,7 +38,7 @@ class Cloudwa
             'Accept' => 'application/json',
         ];
 
-        $this->scheduleAt = now()->utc();
+        $this->scheduleAt = now()->utc()->subMinute();
     }
 
     /**
@@ -182,8 +182,6 @@ class Cloudwa
                             'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
                             'chat_id' => $phone,
                         ]);
-
-                    info($res);
 
                     return ['status' => true];
                 }, function () {
