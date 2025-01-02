@@ -16,7 +16,7 @@ class Cloudwa
 
     protected ?string $file;
 
-    protected ?string $type;
+    protected ?string $type = null;
 
     protected ?array $phones;
 
