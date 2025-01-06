@@ -20,7 +20,7 @@ class Cloudwa
 
     protected ?array $phones;
 
-    protected ?array $templateParameters;
+    protected ?array $templateParameters = null;
 
     private array $headers;
 
@@ -152,6 +152,7 @@ class Cloudwa
                             'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
                             'phone' => $phone,
                             'message' => $this->message ?? null,
+                            'template_parameters' => $this->templateParameters ?? null,
                             'schedule_at' => $this->scheduleAt,
                             'type' => $this->type ?: (filled($this->file) ? 'IMAGE' : 'TEXT'),
                             'image' => $this->file ?? null,
