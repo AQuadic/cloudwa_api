@@ -256,7 +256,7 @@ class Cloudwa
      */
     private function normalizeNumber(string $phone): string
     {
-        if (! str($phone)->isUrl() || ! str($phone)->startsWith('https://chat.whatsapp.com/')) {
+        if (! str($phone)->startsWith('https://chat.whatsapp.com/')) {
             // Remove All Non-Digits
             $phone = preg_replace('/\D/', '', $phone);
         }
