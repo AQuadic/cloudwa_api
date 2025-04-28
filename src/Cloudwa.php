@@ -19,6 +19,8 @@ class Cloudwa
 
     protected ?string $type = null;
 
+    protected ?string $baseUrl = null;
+
     protected ?array $phones;
 
     protected ?array $templateParameters = null;
@@ -54,7 +56,7 @@ class Cloudwa
                 return Http::withHeaders($this->headers)
                     ->timeout(5)
                     ->throw()
-                    ->get("https://cloudwa.net/api/v3/$team/otps/shared-numbers")
+                    ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
                     ->collect();
             });
         } catch (Exception|\Throwable) {
@@ -105,6 +107,18 @@ class Cloudwa
         $this->type = $type;
 
         return $this;
+    }
+
+    public function baseUrl(?string $baseUrl): static
+    {
+        $this->baseUrl = $baseUrl;
+
+        return $this;
+    }
+
+    public function getBaseUrl(): string
+    {
+        return $this->baseUrl ?? "https://cloudwa.net";
     }
 
     public function scheduleAt(?Carbon $scheduleAt): static
@@ -159,7 +173,7 @@ class Cloudwa
                     $response = Http::withHeaders($this->headers)
                         ->timeout(5)
                         ->throw()
-                        ->post('https://cloudwa.net/api/v2/messages/send-message', $data);
+                        ->post("{$this->getBaseUrl()}/api/v2/messages/send-message", $data);
 
                     return [
                         'status' => true,
@@ -191,7 +205,7 @@ class Cloudwa
                         $res = Http::withHeaders($this->headers)
                             ->timeout(5)
                             ->throw()
-                            ->get('https://cloudwa.net/api/v2/sessions/check_availability', [
+                            ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
                                 'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
                                 'chat_id' => $phone,
                             ]);
@@ -222,7 +236,7 @@ class Cloudwa
                     Http::withHeaders($this->headers)
                         ->timeout(5)
                         ->throw()
-                        ->post("https://cloudwa.net/api/v3/$team/otps", [
+                        ->post("{$this->getBaseUrl()}/api/v3/$team/otps", [
                             'phone' => $phone,
                             'code' => $this->message,
                             'expires_at' => $this->scheduleAt->addMinutes(10),
