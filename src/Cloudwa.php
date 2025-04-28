@@ -15,7 +15,7 @@ class Cloudwa
 
     protected ?string $message;
 
-    protected ?string $file;
+    protected ?string $file = null;
 
     protected ?string $type = null;
 
