@@ -2,6 +2,7 @@
 
 namespace AQuadic\Cloudwa;
 
+use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -34,7 +35,7 @@ class Cloudwa
     {
         $this->headers = [
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.config('cloudwa.api_token'),
+            'Authorization' => 'Bearer ' . config('cloudwa.api_token'),
             'Accept' => 'application/json',
         ];
 
@@ -56,7 +57,7 @@ class Cloudwa
                     ->get("https://cloudwa.net/api/v3/$team/otps/shared-numbers")
                     ->collect();
             });
-        } catch (\Exception|\Throwable) {
+        } catch (Exception|\Throwable) {
             return collect();
         }
     }
@@ -115,7 +116,7 @@ class Cloudwa
 
     public function token(?string $apiToken): static
     {
-        $this->headers['Authorization'] = 'Bearer '.($apiToken ?? config('cloudwa.api_token'));
+        $this->headers['Authorization'] = 'Bearer ' . ($apiToken ?? config('cloudwa.api_token'));
 
         return $this;
     }
@@ -137,30 +138,41 @@ class Cloudwa
      *
      * @throws ConnectionException
      */
-    public function sendMessage(): void
+    public function sendMessage(array $inputs = []): Collection
     {
-        collect($this->phones)
+        return collect($this->phones)
             ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
-            ->each(function ($phone) {
+            ->map(fn($p) => $this->normalizeNumber($p))
+            ->map(function ($phone) use ($inputs) {
+                $data = [
+                    'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
+                    'phone' => $phone,
+                    'message' => $this->message ?? null,
+                    'template_parameters' => $this->templateParameters ?? null,
+                    'schedule_at' => $this->scheduleAt,
+                    'type' => $this->type ?: (filled($this->file) ? 'IMAGE' : 'TEXT'),
+                    'image' => $this->file ?? null,
+                    ...$inputs,
+                ];
 
-                rescue(function () use ($phone) {
-                    Http::withHeaders($this->headers)
+                return rescue(function () use ($data) {
+                    $response = Http::withHeaders($this->headers)
                         ->timeout(5)
                         ->throw()
-                        ->post('https://cloudwa.net/api/v2/messages/send-message', [
-                            'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
-                            'phone' => $phone,
-                            'message' => $this->message ?? null,
-                            'template_parameters' => $this->templateParameters ?? null,
-                            'schedule_at' => $this->scheduleAt,
-                            'type' => $this->type ?: (filled($this->file) ? 'IMAGE' : 'TEXT'),
-                            'image' => $this->file ?? null,
-                        ]);
-                }, function () {
-                    return false;
-                });
+                        ->post('https://cloudwa.net/api/v2/messages/send-message', $data);
 
+                    return [
+                        'status' => true,
+                        'request' => $data,
+                        'response' => $response->json(),
+                    ];
+                }, function (Exception $exception) use ($data) {
+                    return [
+                        'status' => false,
+                        'request' => $data,
+                        'response' => $exception->getMessage(),
+                    ];
+                });
             });
     }
 
@@ -172,24 +184,24 @@ class Cloudwa
     public function checkAvailability(): bool
     {
         return collect($this->phones)
-            ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
-            ->map(function ($phone) {
-                return rescue(function () use ($phone) {
-                    $res = Http::withHeaders($this->headers)
-                        ->timeout(5)
-                        ->throw()
-                        ->get('https://cloudwa.net/api/v2/sessions/check_availability', [
-                            'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
-                            'chat_id' => $phone,
-                        ]);
+                ->filter()
+                ->map(fn($p) => $this->normalizeNumber($p))
+                ->map(function ($phone) {
+                    return rescue(function () use ($phone) {
+                        $res = Http::withHeaders($this->headers)
+                            ->timeout(5)
+                            ->throw()
+                            ->get('https://cloudwa.net/api/v2/sessions/check_availability', [
+                                'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
+                                'chat_id' => $phone,
+                            ]);
 
-                    return ['status' => true];
-                }, function () {
-                    return ['status' => false];
-                });
+                        return ['status' => true];
+                    }, function () {
+                        return ['status' => false];
+                    });
 
-            })->where('status', false)->count() == 0;
+                })->where('status', false)->count() == 0;
     }
 
     /**
@@ -203,7 +215,7 @@ class Cloudwa
 
         return collect($this->phones)
             ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
+            ->map(fn($p) => $this->normalizeNumber($p))
             ->map(function ($phone) use ($team) {
 
                 rescue(function () use ($team, $phone) {
@@ -244,7 +256,7 @@ class Cloudwa
 
         return [
             'reference' => $reference,
-            'message' => 'OTP:'.$team.':'.$code,
+            'message' => 'OTP:' . $team . ':' . $code,
             'phone' => $phone,
             'scheme' => "whatsapp://send?text=OTP:$team:$code&phone=$phone&abid=$phone",
             'url' => "https://wa.me/$phone?text=OTP:$team:$code",
@@ -256,7 +268,7 @@ class Cloudwa
      */
     private function normalizeNumber(string $phone): string
     {
-        if (! str($phone)->startsWith('https://chat.whatsapp.com/')) {
+        if (!str($phone)->startsWith('https://chat.whatsapp.com/')) {
             // Remove All Non-Digits
             $phone = preg_replace('/\D/', '', $phone);
         }
