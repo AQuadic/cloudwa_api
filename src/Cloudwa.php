@@ -21,6 +21,8 @@ class Cloudwa
 
     protected ?string $baseUrl = null;
 
+    protected ?int $timeout = null;
+
     protected ?array $phones;
 
     protected ?array $templateParameters = null;
@@ -54,7 +56,8 @@ class Cloudwa
                 $team = config('cloudwa.team_id');
 
                 return Http::withHeaders($this->headers)
-                    ->timeout(5)
+                    ->timeout($this->getTimeout())
+                    ->connectTimeout($this->getTimeout())
                     ->throw()
                     ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
                     ->collect();
@@ -121,6 +124,18 @@ class Cloudwa
         return $this->baseUrl ?? 'https://cloudwa.net';
     }
 
+    public function timeout(?int $timeout): static
+    {
+        $this->timeout = $timeout;
+
+        return $this;
+    }
+
+    public function getTimeout(): int
+    {
+        return $this->timeout ?? 5;
+    }
+
     public function scheduleAt(?Carbon $scheduleAt): static
     {
         $this->scheduleAt = ($scheduleAt ?? now());
@@ -171,7 +186,8 @@ class Cloudwa
 
                 return rescue(function () use ($data) {
                     $response = Http::withHeaders($this->headers)
-                        ->timeout(5)
+                        ->timeout($this->getTimeout())
+                        ->connectTimeout($this->getTimeout())
                         ->throw()
                         ->post("{$this->getBaseUrl()}/api/v2/messages/send-message", $data);
 
@@ -203,7 +219,8 @@ class Cloudwa
             ->map(function ($phone) {
                 return rescue(function () use ($phone) {
                     $res = Http::withHeaders($this->headers)
-                        ->timeout(5)
+                        ->timeout($this->getTimeout())
+                        ->connectTimeout($this->getTimeout())
                         ->throw()
                         ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
                             'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
@@ -234,7 +251,8 @@ class Cloudwa
 
                 rescue(function () use ($team, $phone) {
                     Http::withHeaders($this->headers)
-                        ->timeout(5)
+                        ->timeout($this->getTimeout())
+                        ->connectTimeout($this->getTimeout())
                         ->throw()
                         ->post("{$this->getBaseUrl()}/api/v3/$team/otps", [
                             'phone' => $phone,
