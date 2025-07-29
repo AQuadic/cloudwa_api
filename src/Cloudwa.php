@@ -175,7 +175,7 @@ class Cloudwa
             ->map(function ($phone) use ($inputs) {
                 $data = [
                     'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
-                    'phone' => $phone,
+                    'chat_id' => $phone,
                     'message' => $this->message ?? null,
                     'template_parameters' => $this->templateParameters ?? null,
                     'schedule_at' => $this->scheduleAt,
@@ -300,6 +300,11 @@ class Cloudwa
      */
     private function normalizeNumber(string $phone): string
     {
+        // if it's group, then do nothing.
+        if (str_contains($phone, '@g.us')) {
+            return $phone;
+        }
+
         if (! str($phone)->startsWith('https://chat.whatsapp.com/')) {
             // Remove All Non-Digits
             $phone = preg_replace('/\D/', '', $phone);
