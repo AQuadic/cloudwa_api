@@ -23,6 +23,8 @@ class Cloudwa
 
     protected ?int $timeout = null;
 
+    protected ?int $typingDuration = null;
+
     protected ?array $phones;
 
     protected ?array $templateParameters = null;
@@ -112,6 +114,13 @@ class Cloudwa
         return $this;
     }
 
+    public function typingDuration(?int $typingDuration): static
+    {
+        $this->typingDuration = $typingDuration;
+
+        return $this;
+    }
+
     public function baseUrl(?string $baseUrl): static
     {
         $this->baseUrl = $baseUrl;
@@ -179,6 +188,7 @@ class Cloudwa
                     'message' => $this->message ?? null,
                     'template_parameters' => $this->templateParameters ?? null,
                     'schedule_at' => $this->scheduleAt,
+                    'typing_duration' => $this->typingDuration ?? null,
                     'type' => $this->type ?: (filled($this->file) ? 'IMAGE' : 'TEXT'),
                     'image' => $this->file ?? null,
                     ...$inputs,
