@@ -19,6 +19,8 @@ class Cloudwa
 
     protected ?string $type = null;
 
+    protected ?string $replyToMessageId = null;
+
     protected ?string $baseUrl = null;
 
     protected ?int $timeout = null;
@@ -114,6 +116,13 @@ class Cloudwa
         return $this;
     }
 
+    public function replyToMessageId(?string $replyToMessageId): static
+    {
+        $this->replyToMessageId = $replyToMessageId;
+
+        return $this;
+    }
+
     public function typingDuration(?int $typingDuration): static
     {
         $this->typingDuration = $typingDuration;
@@ -187,6 +196,7 @@ class Cloudwa
                     'chat_id' => $phone,
                     'message' => $this->message ?? null,
                     'template_parameters' => $this->templateParameters ?? null,
+                    'reply_to_message_id' => $this->replyToMessageId ?? null,
                     'schedule_at' => $this->scheduleAt,
                     'typing_duration' => $this->typingDuration ?? null,
                     'type' => $this->type ?: (filled($this->file) ? 'IMAGE' : 'TEXT'),
