@@ -56,26 +56,23 @@ class Cloudwa
     public function fetchSharedOTPNumbers(): Collection
     {
         try {
-            return cache()->get('cloudwa-shared-otp-numbers')
-                    ?? tap(
-                        Http::withHeaders($this->headers)
-                            ->timeout($this->getTimeout())
-                            ->connectTimeout($this->getTimeout())
-                            ->throw()
-                            ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
-                            ->collect(),
-                        function ($response) {
-                            if ($response->isNotEmpty()) {
-                                cache()->put('cloudwa-shared-otp-numbers', $response, 60 * 60);
-                            }
-                        }
-                    );
-        } catch (Exception|\Throwable) {
-            \Log::error('Cloudwa: fetchSharedOTPNumbers failed', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            $team = config('cloudwa.team_id');
 
+            return cache()->get('cloudwa-shared-otp-numbers')
+                ?? tap(
+                    Http::withHeaders($this->headers)
+                        ->timeout($this->getTimeout())
+                        ->connectTimeout($this->getTimeout())
+                        ->throw()
+                        ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
+                        ->collect(),
+                    function ($response) {
+                        if ($response->isNotEmpty()) {
+                            cache()->put('cloudwa-shared-otp-numbers', $response, 60 * 60);
+                        }
+                    }
+                );
+        } catch (Exception|\Throwable) {
             return collect();
         }
     }
@@ -243,25 +240,25 @@ class Cloudwa
     public function checkAvailability(): bool
     {
         return collect($this->phones)
-            ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
-            ->map(function ($phone) {
-                return rescue(function () use ($phone) {
-                    $res = Http::withHeaders($this->headers)
-                        ->timeout($this->getTimeout())
-                        ->connectTimeout($this->getTimeout())
-                        ->throw()
-                        ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
-                            'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
-                            'chat_id' => $phone,
-                        ]);
+                ->filter()
+                ->map(fn ($p) => $this->normalizeNumber($p))
+                ->map(function ($phone) {
+                    return rescue(function () use ($phone) {
+                        $res = Http::withHeaders($this->headers)
+                            ->timeout($this->getTimeout())
+                            ->connectTimeout($this->getTimeout())
+                            ->throw()
+                            ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
+                                'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
+                                'chat_id' => $phone,
+                            ]);
 
-                    return ['status' => true];
-                }, function () {
-                    return ['status' => false];
-                });
+                        return ['status' => true];
+                    }, function () {
+                        return ['status' => false];
+                    });
 
-            })->where('status', false)->count() == 0;
+                })->where('status', false)->count() == 0;
     }
 
     /**
