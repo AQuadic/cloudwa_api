@@ -43,7 +43,7 @@ class Cloudwa
     {
         $this->headers = [
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.config('cloudwa.api_token'),
+            'Authorization' => 'Bearer ' . config('cloudwa.api_token'),
             'Accept' => 'application/json',
         ];
 
@@ -56,23 +56,29 @@ class Cloudwa
     public function fetchSharedOTPNumbers(): Collection
     {
         try {
+            $cacheKey = 'cloudwa-shared-otp-numbers';
+            $cache = cache()->get($cacheKey);
+
+            if ($cache) return $cache;
+
             $team = config('cloudwa.team_id');
 
-            return cache()->get('cloudwa-shared-otp-numbers')
-                ?? tap(
-                    Http::withHeaders($this->headers)
-                        ->timeout($this->getTimeout())
-                        ->connectTimeout($this->getTimeout())
-                        ->throw()
-                        ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
-                        ->collect(),
-                    function ($response) {
-                        if ($response->isNotEmpty()) {
-                            cache()->put('cloudwa-shared-otp-numbers', $response, 60 * 60);
-                        }
-                    }
-                );
-        } catch (Exception|\Throwable) {
+            $response = Http::withHeaders($this->headers)
+                ->timeout($this->getTimeout())
+                ->connectTimeout($this->getTimeout())
+                ->throw()
+                ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
+                ->collect();
+
+            if ($response->isEmpty()) {
+                return collect();
+            }
+
+            cache()->put($cacheKey, $response, 60 * 60);
+
+            return $response;
+
+        } catch (Exception|\Throwable $e) {
             \Log::error('Cloudwa: fetchSharedOTPNumbers failed', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -174,7 +180,7 @@ class Cloudwa
 
     public function token(?string $apiToken): static
     {
-        $this->headers['Authorization'] = 'Bearer '.($apiToken ?? config('cloudwa.api_token'));
+        $this->headers['Authorization'] = 'Bearer ' . ($apiToken ?? config('cloudwa.api_token'));
 
         return $this;
     }
@@ -200,7 +206,7 @@ class Cloudwa
     {
         return collect($this->phones)
             ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
+            ->map(fn($p) => $this->normalizeNumber($p))
             ->map(function ($phone) use ($inputs) {
                 $data = [
                     'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
@@ -245,25 +251,25 @@ class Cloudwa
     public function checkAvailability(): bool
     {
         return collect($this->phones)
-            ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
-            ->map(function ($phone) {
-                return rescue(function () use ($phone) {
-                    $res = Http::withHeaders($this->headers)
-                        ->timeout($this->getTimeout())
-                        ->connectTimeout($this->getTimeout())
-                        ->throw()
-                        ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
-                            'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
-                            'chat_id' => $phone,
-                        ]);
+                ->filter()
+                ->map(fn($p) => $this->normalizeNumber($p))
+                ->map(function ($phone) {
+                    return rescue(function () use ($phone) {
+                        $res = Http::withHeaders($this->headers)
+                            ->timeout($this->getTimeout())
+                            ->connectTimeout($this->getTimeout())
+                            ->throw()
+                            ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
+                                'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
+                                'chat_id' => $phone,
+                            ]);
 
-                    return ['status' => true];
-                }, function () {
-                    return ['status' => false];
-                });
+                        return ['status' => true];
+                    }, function () {
+                        return ['status' => false];
+                    });
 
-            })->where('status', false)->count() == 0;
+                })->where('status', false)->count() == 0;
     }
 
     /**
@@ -277,7 +283,7 @@ class Cloudwa
 
         return collect($this->phones)
             ->filter()
-            ->map(fn ($p) => $this->normalizeNumber($p))
+            ->map(fn($p) => $this->normalizeNumber($p))
             ->map(function ($phone) use ($team) {
 
                 rescue(function () use ($team, $phone) {
@@ -319,7 +325,7 @@ class Cloudwa
 
         return [
             'reference' => $reference,
-            'message' => 'OTP:'.$team.':'.$code,
+            'message' => 'OTP:' . $team . ':' . $code,
             'phone' => $phone,
             'scheme' => "whatsapp://send?text=OTP:$team:$code&phone=$phone&abid=$phone",
             'url' => "https://wa.me/$phone?text=OTP:$team:$code",
@@ -336,7 +342,7 @@ class Cloudwa
             return $phone;
         }
 
-        if (! str($phone)->startsWith('https://chat.whatsapp.com/')) {
+        if (!str($phone)->startsWith('https://chat.whatsapp.com/')) {
             // Remove All Non-Digits
             $phone = preg_replace('/\D/', '', $phone);
         }
