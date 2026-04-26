@@ -240,25 +240,25 @@ class Cloudwa
     public function checkAvailability(): bool
     {
         return collect($this->phones)
-                ->filter()
-                ->map(fn ($p) => $this->normalizeNumber($p))
-                ->map(function ($phone) {
-                    return rescue(function () use ($phone) {
-                        $res = Http::withHeaders($this->headers)
-                            ->timeout($this->getTimeout())
-                            ->connectTimeout($this->getTimeout())
-                            ->throw()
-                            ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
-                                'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
-                                'chat_id' => $phone,
-                            ]);
+            ->filter()
+            ->map(fn ($p) => $this->normalizeNumber($p))
+            ->map(function ($phone) {
+                return rescue(function () use ($phone) {
+                    $res = Http::withHeaders($this->headers)
+                        ->timeout($this->getTimeout())
+                        ->connectTimeout($this->getTimeout())
+                        ->throw()
+                        ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
+                            'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
+                            'chat_id' => $phone,
+                        ]);
 
-                        return ['status' => true];
-                    }, function () {
-                        return ['status' => false];
-                    });
+                    return ['status' => true];
+                }, function () {
+                    return ['status' => false];
+                });
 
-                })->where('status', false)->count() == 0;
+            })->where('status', false)->count() == 0;
     }
 
     /**
