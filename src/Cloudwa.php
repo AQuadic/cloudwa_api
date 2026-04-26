@@ -56,20 +56,20 @@ class Cloudwa
     public function fetchSharedOTPNumbers(): Collection
     {
         try {
-        return cache()->get('cloudwa-shared-otp-numbers')
-                ?? tap(
-                    Http::withHeaders($this->headers)
-                        ->timeout($this->getTimeout())
-                        ->connectTimeout($this->getTimeout())
-                        ->throw()
-                        ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
-                        ->collect(),
-                    function ($response) {
-                        if ($response->isNotEmpty()) {
-                            cache()->put('cloudwa-shared-otp-numbers', $response, 60 * 60);
+            return cache()->get('cloudwa-shared-otp-numbers')
+                    ?? tap(
+                        Http::withHeaders($this->headers)
+                            ->timeout($this->getTimeout())
+                            ->connectTimeout($this->getTimeout())
+                            ->throw()
+                            ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
+                            ->collect(),
+                        function ($response) {
+                            if ($response->isNotEmpty()) {
+                                cache()->put('cloudwa-shared-otp-numbers', $response, 60 * 60);
+                            }
                         }
-                    }
-                );
+                    );
         } catch (Exception|\Throwable) {
             return collect();
         }

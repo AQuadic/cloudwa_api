@@ -20,7 +20,7 @@ class CloudWaOTPChannel
         $message = match (true) {
             method_exists($notification, 'toCloudWaOTP') => $notification->toCloudWaOTP($notifiable),
             method_exists($notification, 'toCloudWa') => $notification->toCloudWa($notifiable),
-            default => throw new \Exception('toCloudWa or toCloudWaOTP Method not added yet in notification class'),
+            default => throw new Exception('toCloudWa or toCloudWaOTP Method not added yet in notification class'),
         };
 
         (new Cloudwa)
