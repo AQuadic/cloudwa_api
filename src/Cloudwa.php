@@ -57,9 +57,11 @@ class Cloudwa
     {
         try {
             $cacheKey = 'cloudwa-shared-otp-numbers';
-            $cache = cache()->get($cacheKey);
 
-            if ($cache) return $cache;
+            $cached = cache()->get($cacheKey);
+            if (!empty($cached) && is_array($cached)) {
+                return collect($cached);
+            }
 
             $team = config('cloudwa.team_id');
 
@@ -68,15 +70,15 @@ class Cloudwa
                 ->connectTimeout($this->getTimeout())
                 ->throw()
                 ->get("{$this->getBaseUrl()}/api/v3/$team/otps/shared-numbers")
-                ->collect();
+                ->json();
 
-            if ($response->isEmpty()) {
-                return collect();
+            if (empty($response) || !is_array($response)) {
+                throw new \Exception('Cloudwa fetchSharedOTPNumbers returned invalid response: ' . json_encode($response));
             }
 
             cache()->put($cacheKey, $response, 60 * 60);
 
-            return $response;
+            return collect($response);
 
         } catch (Exception|\Throwable $e) {
             \Log::error('Cloudwa: fetchSharedOTPNumbers failed', [
