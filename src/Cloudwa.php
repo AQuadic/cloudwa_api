@@ -73,6 +73,11 @@ class Cloudwa
                     }
                 );
         } catch (Exception|\Throwable) {
+                \Log::error('Cloudwa: fetchSharedOTPNumbers failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return collect();
         }
     }
