@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Http;
 
 class Cloudwa
 {
-    protected ?string $sessionUuid;
+    protected ?string $sessionUuid = null;
 
-    protected ?string $message;
+    protected ?string $message = null;
 
     protected ?string $file = null;
 
@@ -27,7 +27,7 @@ class Cloudwa
 
     protected ?int $typingDuration = null;
 
-    protected ?array $phones;
+    protected ?array $phones = [];
 
     protected ?array $templateParameters = null;
 
@@ -35,9 +35,9 @@ class Cloudwa
 
     protected Carbon $scheduleAt;
 
-    protected bool $throwOnException;
+    protected bool $throwOnException = false;
 
-    protected string $reference;
+    protected string $reference = '';
 
     public function __construct()
     {
@@ -235,7 +235,11 @@ class Cloudwa
                         'request' => $data,
                         'response' => $response->json(),
                     ];
-                }, function (Exception $exception) use ($data) {
+                }, function (\Throwable $exception) use ($data) {
+                    if ($this->throwOnException) {
+                        throw $exception;
+                    }
+
                     return [
                         'status' => false,
                         'request' => $data,
@@ -288,7 +292,7 @@ class Cloudwa
             ->map(fn ($p) => $this->normalizeNumber($p))
             ->map(function ($phone) use ($team) {
 
-                rescue(function () use ($team, $phone) {
+                return rescue(function () use ($team, $phone) {
                     Http::withHeaders($this->headers)
                         ->timeout($this->getTimeout())
                         ->connectTimeout($this->getTimeout())
@@ -300,11 +304,15 @@ class Cloudwa
                             'reference_number' => $this->reference,
                         ]);
 
-                    return self::generateWaCallback(
+                    return $this->getWaCallback(
                         $this->reference,
                         $this->message,
                     );
-                }, function () {
+                }, function (\Throwable $exception) {
+                    if ($this->throwOnException) {
+                        throw $exception;
+                    }
+
                     return false;
                 });
 
@@ -312,18 +320,44 @@ class Cloudwa
     }
 
     /**
+     * Get private OTP numbers as a collection.
+     */
+    public static function getPrivateOTPNumbers(): Collection
+    {
+        $private = config('cloudwa.otp.private');
+
+        if (is_array($private)) {
+            return collect($private)->map(fn ($p) => (string) $p)->filter();
+        }
+
+        if (is_string($private)) {
+            return collect(explode(',', $private))
+                ->map(fn ($p) => trim($p))
+                ->filter();
+        }
+
+        if (filled($private)) {
+            return collect([(string) $private]);
+        }
+
+        return collect();
+    }
+
+    /**
+     * Get WhatsApp callback details for an OTP using the current instance context.
+     *
      * @throws ConnectionException
      */
-    public static function generateWaCallback(string $reference, string $code): array
+    public function getWaCallback(string $reference, string $code): array
     {
         $team = config('cloudwa.team_id');
-        $phone = config('cloudwa.otp.shared')
-            ? (new self)->fetchSharedOTPNumbers()
-                ->add(config('cloudwa.otp.private'))
-                ->filter()
-                ->random(1)
-                ->first()
-            : config('cloudwa.otp.private');
+        $privateNumbers = self::getPrivateOTPNumbers();
+
+        $numbers = config('cloudwa.otp.shared')
+            ? $this->fetchSharedOTPNumbers()->merge($privateNumbers)->filter()
+            : $privateNumbers;
+
+        $phone = $numbers->isEmpty() ? null : $numbers->random();
 
         return [
             'reference' => $reference,
@@ -332,6 +366,14 @@ class Cloudwa
             'scheme' => "whatsapp://send?text=OTP:$team:$code&phone=$phone&abid=$phone",
             'url' => "https://wa.me/$phone?text=OTP:$team:$code",
         ];
+    }
+
+    /**
+     * @throws ConnectionException
+     */
+    public static function generateWaCallback(string $reference, string $code): array
+    {
+        return (new self)->getWaCallback($reference, $code);
     }
 
     /**
