@@ -261,7 +261,7 @@ class Cloudwa
             ->filter()
             ->map(fn ($p) => $this->normalizeNumber($p))
             ->map(function ($phone) {
-                $sessionUuid = $this->sessionUuid ?? config('cloudwa.uuids.default') ?? config('cloudwa.uuids.operations');
+                $sessionUuid = $this->sessionUuid ?? config('cloudwa.session_uuid') ?? config('cloudwa.uuids.default');
 
                 $response = rescue(function () use ($phone, $sessionUuid) {
                     return Http::withHeaders($this->headers)
