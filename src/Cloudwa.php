@@ -253,6 +253,7 @@ class Cloudwa
      * Check whatsapp phones Availability.
      *
      * @throws ConnectionException
+     * @throws \Throwable
      */
     public function checkAvailability(): bool
     {
@@ -260,21 +261,52 @@ class Cloudwa
             ->filter()
             ->map(fn ($p) => $this->normalizeNumber($p))
             ->map(function ($phone) {
-                return rescue(function () use ($phone) {
-                    $res = Http::withHeaders($this->headers)
+                $sessionUuid = $this->sessionUuid ?? config('cloudwa.uuids.default') ?? config('cloudwa.uuids.operations');
+
+                $response = rescue(function () use ($phone, $sessionUuid) {
+                    return Http::withHeaders($this->headers)
                         ->timeout($this->getTimeout())
                         ->connectTimeout($this->getTimeout())
-                        ->throw()
                         ->get("{$this->getBaseUrl()}/api/v2/sessions/check_availability", [
-                            'session_uuid' => $this->sessionUuid ?? config('cloudwa.uuids.default'),
+                            'session_uuid' => $sessionUuid,
                             'chat_id' => $phone,
                         ]);
+                }, function (\Throwable $exception) {
+                    if ($this->throwOnException) {
+                        throw $exception;
+                    }
 
-                    return ['status' => true];
-                }, function () {
-                    return ['status' => false];
+                    return null;
                 });
 
+                if (is_null($response)) {
+                    return ['status' => false];
+                }
+
+                // If 200 OK
+                if ($response->successful()) {
+                    $data = $response->json();
+                    if (isset($data['numberExists']) && $data['numberExists'] === false) {
+                        return ['status' => false];
+                    }
+
+                    return ['status' => true];
+                }
+
+                // If 404 Not Found (Cloudwa returns 404 when the number is not registered on WhatsApp)
+                if ($response->status() === 404) {
+                    $data = $response->json();
+                    if (isset($data['numberExists']) && $data['numberExists'] === false) {
+                        return ['status' => false];
+                    }
+                }
+
+                // Any other status (500, 403, 401, 502, 503, etc.) is a server / session error
+                if ($this->throwOnException) {
+                    $response->throw();
+                }
+
+                return ['status' => false];
             })->where('status', false)->count() == 0;
     }
 
